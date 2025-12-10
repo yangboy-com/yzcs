@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>高级颜值测试与面部分析系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --accent-color: #ff6b8b;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --error-color: #f44336;
+            --dark-color: #2c3e50;
+            --light-color: #f8f9fa;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --border-color: #e0e0e0;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.15);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.2);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* 移动端优化的头部 */
+        .mobile-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: var(--dark-color);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon i {
+            font-size: 18px;
+            color: white;
+        }
+
+        .app-name {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .app-name span {
+            color: var(--accent-color);
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            padding-top: 64px;
+            padding-bottom: 80px;
+            min-height: 100vh;
+        }
+
+        /* 底部导航栏 - 移动端专用 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid var(--border-color);
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            transition: all 0.3s ease;
+            min-width: 60px;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+        }
+
+        .nav-item span {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            background: rgba(106, 17, 203, 0.1);
+        }
+
+        /* 内容区域 */
+        .content-section {
+            display: none;
+            padding: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-content {
+            padding: 16px;
+        }
+
+        /* 上传区域 */
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 32px 16px;
+            text-align: center;
+            background: var(--light-color);
+            margin-bottom: 20px;
+        }
+
+        .upload-area.highlight {
+            border-color: var(--primary-color);
+            background: rgba(106, 17, 203, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            opacity: 0.7;
+        }
+
+        .upload-btn {
+            margin-top: 16px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* 分析结果 */
+        .score-display {
+            text-align: center;
+            padding: 24px 16px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+        }
+
+        .score-circle {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 16px;
+        }
+
+        .score-circle svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-circle circle {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+
+        .progress-bg {
+            stroke: var(--border-color);
+        }
+
+        .progress-fill {
+            stroke: var(--success-color);
+            stroke-dasharray: 377;
+            stroke-dashoffset: 377;
+            transition: stroke-dashoffset 1.5s ease;
+        }
+
+        .score-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .score-label {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .score-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* 指标网格 */
+        .indicators-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .indicator-item {
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .indicator-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .indicator-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .indicator-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--light-color);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 3px;
+            width: 0;
+            transition: width 1s ease;
+        }
+
+        .indicator-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+        }
+
+        .chart-container h4 {
+            margin-bottom: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* 建议标签页 */
+        .recommendation-tabs {
+            display: flex;
+            overflow-x: auto;
+            gap: 4px;
+            margin-bottom: 16px;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .recommendation-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .rec-tab {
+            flex-shrink: 0;
+            padding: 12px 16px;
+            background: var(--light-color);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rec-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .rec-content {
+            display: none;
+        }
+
+        .rec-content.active {
+            display: block;
+        }
+
+        /* 建议内容 */
+        .recommendation-content {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+        }
+
+        .rec-section {
+            margin-bottom: 24px;
+        }
+
+        .rec-section h5 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rec-section p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .rec-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .rec-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .rec-list li i {
+            color: var(--success-color);
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        /* 身高体重输入 */
+        .body-measurements {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 20px;
+        }
+
+        .measurement-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+        }
+
+        .measurement-result {
+            background: var(--light-color);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            margin-top: 16px;
+        }
+
+        .bmi-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .bmi-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .bmi-category {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .bmi-normal {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .bmi-overweight {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--warning-color);
+        }
+
+        .bmi-underweight {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196F3;
+        }
+
+        /* 加载动画 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--light-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        /* 模态框 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1500;
+            padding: 16px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* 响应式调整 */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 768px;
+                margin: 20px auto;
+                border-radius: var(--radius-lg);
+                min-height: calc(100vh - 40px);
+            }
+            
+            .mobile-header {
+                position: relative;
+                padding: 20px;
+            }
+            
+            .main-content {
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+            
+            .bottom-nav {
+                display: none;
+            }
+            
+            .content-section {
+                padding: 24px;
+            }
+            
+            .indicators-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 16px;
+            }
+            
+            .btn {
+                width: auto;
+                display: inline-flex;
+                margin-right: 12px;
+                margin-bottom: 0;
+            }
+        }
+
+        /* 改进的页面标题 */
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        /* 分隔线 */
+        .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 24px 0;
+        }
+
+        /* 面部轮廓图 */
+        .face-contour {
+            text-align: center;
+            margin: 24px 0;
+        }
+
+        .face-outline {
+            width: 150px;
+            height: 150px;
+            border: 3px solid var(--primary-color);
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .face-type {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        /* 黄金比例展示 */
+        .golden-ratios {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .golden-item {
+            flex: 1;
+            text-align: center;
+            padding: 16px 8px;
+            background: var(--light-color);
+            border-radius: var(--radius-sm);
+        }
+
+        .golden-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .golden-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .golden-status {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .status-good {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-average {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--warning-color);
+        }
+
+        /* 颜色搭配展示 */
+        .color-palette {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+        }
+
+        .color-item {
+            flex: 1;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            position: relative;
+        }
+
+        .color-name {
+            position: absolute;
+            bottom: 4px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* 身高体重图表 */
+        .bmi-chart {
+            margin: 20px 0;
+        }
+
+        .bmi-scale {
+            display: flex;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .bmi-segment {
+            flex: 1;
+            text-align: center;
+            font-size: 10px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bmi-marker {
+            position: relative;
+            height: 30px;
+            margin-top: -5px;
+        }
+
+        .bmi-pointer {
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: var(--dark-color);
+            top: 0;
+        }
+
+        .bmi-pointer:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -4px;
+            width: 10px;
+            height: 10px;
+            background: var(--dark-color);
+            border-radius: 50%;
+        }
+
+        .bmi-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 移动端头部 -->
+        <header class="mobile-header">
+            <div class="header-left">
+                <div class="logo-icon">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <div class="app-name">Face<span>Pro</span></div>
+            </div>
+            <div class="header-right">
+                <button class="header-btn" id="settingsBtn" title="设置">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="header-btn" id="helpBtn" title="帮助">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 上传照片页面 -->
+            <section class="content-section active" id="upload-page">
+                <h1 class="page-title">上传面部照片</h1>
+                <p class="page-subtitle">上传正面清晰的面部照片，系统将进行全面的美学分析</p>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>点击或拖放上传照片</h3>
+                    <p>支持 JPG、PNG 格式，最大 5MB</p>
+                    <button class="upload-btn" id="uploadBtn">
+                        <i class="fas fa-folder-open"></i> 选择照片
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*">
+                </div>
+                
+                <div class="preview-container" id="previewContainer" style="display: none;">
+                    <img id="previewImage" alt="上传的面部照片">
+                    <div style="margin-top: 16px;">
+                        <button class="btn btn-secondary" id="removeBtn" style="width: auto;">
+                            <i class="fas fa-trash"></i> 移除照片
+                        </button>
+                        <button class="btn btn-primary" id="nextToMeasurements" style="width: auto;">
+                            下一步：身体测量 <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-lightbulb"></i> 拍摄指南</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="rec-section">
+                            <h5>正确示范</h5>
+                            <ul class="rec-list">
+                                <li><i class="fas fa-check"></i> 正面直视镜头，头部保持水平</li>
+                                <li><i class="fas fa-check"></i> 使用自然均匀的光线，避免强烈阴影</li>
+                                <li><i class="fas fa-check"></i> 保持自然表情或轻微微笑</li>
+                                <li><i class="fas fa-check"></i> 背景简洁，无杂物干扰</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="rec-section">
+                            <h5>需要避免</h5>
+                            <ul class="rec-list">
+                                <li><i class="fas fa-times"></i> 侧面或倾斜角度拍摄</li>
+                                <li><i class="fas fa-times"></i> 佩戴眼镜或帽子遮挡面部</li>
+                                <li><i class="fas fa-times"></i> 使用美颜滤镜或过度修图</li>
+                                <li><i class="fas fa-times"></i> 夸张的表情或妆容</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 身体测量页面 -->
+            <section class="content-section" id="measurements-page">
+                <h1 class="page-title">身体测量数据</h1>
+                <p class="page-subtitle">填写身高体重数据，获取更精准的形象建议</p>
+                
+                <div class="body-measurements">
+                    <div class="measurement-grid">
+                        <div class="input-group">
+                            <label for="height"><i class="fas fa-ruler-vertical"></i> 身高 (cm)</label>
+                            <input type="number" id="height" min="100" max="250" placeholder="例如：170">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="weight"><i class="fas fa-weight"></i> 体重 (kg)</label>
+                            <input type="number" id="weight" min="30" max="200" placeholder="例如：65">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="gender"><i class="fas fa-venus-mars"></i> 性别</label>
+                        <select id="gender">
+                            <option value="male">男性</option>
+                            <option value="female" selected>女性</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="age"><i class="fas fa-birthday-cake"></i> 年龄</label>
+                        <input type="number" id="age" min="10" max="80" placeholder="例如：25">
+                    </div>
+                    
+                    <div class="measurement-result" id="bmiResult" style="display: none;">
+                        <div class="bmi-result">
+                            <div>
+                                <div style="font-size: 14px; color: var(--text-secondary);">您的BMI指数</div>
+                                <div class="bmi-value" id="bmiValue">0.0</div>
+                            </div>
+                            <div class="bmi-category" id="bmiCategory">正常</div>
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary);" id="bmiDescription">
+                            体重在正常范围内，保持健康生活方式。
+                        </div>
+                        
+                        <div class="bmi-chart">
+                            <div class="bmi-scale">
+                                <div class="bmi-segment" style="background: #4CAF50;">偏瘦</div>
+                                <div class="bmi-segment" style="background: #8BC34A;">正常</div>
+                                <div class="bmi-segment" style="background: #FFC107;">超重</div>
+                                <div class="bmi-segment" style="background: #FF9800;">肥胖</div>
+                            </div>
+                            <div class="bmi-marker">
+                                <div class="bmi-pointer" id="bmiPointer" style="left: 50%;"></div>
+                            </div>
+                            <div class="bmi-labels">
+                                <span>&lt;18.5</span>
+                                <span>18.5-24</span>
+                                <span>24-28</span>
+                                <span>&gt;28</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="calculateBmi">
+                        <i class="fas fa-calculator"></i> 计算BMI
+                    </button>
+                    
+                    <div style="display: flex; gap: 12px; margin-top: 16px;">
+                        <button class="btn btn-secondary" id="backToUpload">
+                            <i class="fas fa-arrow-left"></i> 返回
+                        </button>
+                        <button class="btn btn-primary" id="startAnalysis">
+                            <i class="fas fa-brain"></i> 开始智能分析
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-info-circle"></i> BMI指数说明</h3>
+                    </div>
+                    <div class="card-content">
+                        <p>身体质量指数（BMI）是衡量体重与身高比例的常用指标，能够帮助评估体重健康状况。</p>
+                        <ul class="rec-list">
+                            <li><i class="fas fa-thermometer-empty"></i> 偏瘦：BMI &lt; 18.5</li>
+                            <li><i class="fas fa-thermometer-quarter"></i> 正常：BMI 18.5-24</li>
+                            <li><i class="fas fa-thermometer-half"></i> 超重：BMI 24-28</li>
+                            <li><i class="fas fa-thermometer-full"></i> 肥胖：BMI &gt; 28</li>
+                        </ul>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 12px;">
+                            <i class="fas fa-exclamation-triangle"></i> 注意：BMI仅为参考指标，不能完全反映身体成分和健康状况。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 分析结果页面 -->
+            <section class="content-section" id="analysis-page">
+                <h1 class="page-title">面部美学分析报告</h1>
+                <p class="page-subtitle">基于黄金比例与多维度的专业评估</p>
+                
+                <div class="score-display">
+                    <div class="score-circle">
+                        <svg width="140" height="140">
+                            <circle class="progress-bg" cx="70" cy="70" r="60"></circle>
+                            <circle class="progress-fill" id="scoreProgress" cx="70" cy="70" r="60"></circle>
+                        </svg>
+                        <div class="score-value" id="overallScore">0.0</div>
+                    </div>
+                    <div class="score-label" id="beautyLevel">未分析</div>
+                    <div class="score-description" id="faceType">等待分析结果...</div>
+                </div>
+                
+                <div class="indicators-grid">
+                    <div class="indicator-item">
+                        <div class="indicator-header">
+                            <span class="indicator-name">面部对称性</span>
+                            <span class="indicator-value" id="symmetryValue">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" id="symmetryProgress"></div>
+                        </div>
+                        <div class="indicator-desc" id="symmetryDesc">左右面部特征对称程度</div>
+                    </div>
+                    
+                    <div class="indicator-item">
+                        <div class="indicator-header">
+                            <span class="indicator-name">三庭五眼</span>
+                            <span class="indicator-value" id="zonesValue">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" id="zonesProgress"></div>
+                        </div>
+                        <div class="indicator-desc" id="zonesDesc">面部比例协调性评估</div>
+                    </div>
+                    
+                    <div class="indicator-item">
+                        <div class="indicator-header">
+                            <span class="indicator-name">五官精致度</span>
+                            <span class="indicator-value" id="featuresValue">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" id="featuresProgress"></div>
+                        </div>
+                        <div class="indicator-desc" id="featuresDesc">五官形态与分布评分</div>
+                    </div>
+                    
+                    <div class="indicator-item">
+                        <div class="indicator-header">
+                            <span class="indicator-name">轮廓线条</span>
+                            <span class="indicator-value" id="contourValue">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" id="contourProgress"></div>
+                        </div>
+                        <div class="indicator-desc" id="contourDesc">面部轮廓清晰度与流畅度</div>
+                    </div>
+                </div>
+                
+                <div class="face-contour">
+                    <div class="face-outline" id="faceOutline"></div>
+                    <div class="face-type" id="faceShape">未确定</div>
+                </div>
+                
+                <div class="chart-container">
+                    <h4><i class="fas fa-radar"></i> 面部特征雷达图</h4>
+                    <div class="chart-wrapper">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h4><i class="fas fa-chart-pie"></i> 面部比例分布</h4>
+                    <div class="chart-wrapper">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="golden-ratios">
+                    <div class="golden-item">
+                        <div class="golden-label">鼻唇角度</div>
+                        <div class="golden-value" id="nasolabialAngle">0°</div>
+                        <div class="golden-status status-good" id="nasolabialStatus">理想</div>
+                    </div>
+                    <div class="golden-item">
+                        <div class="golden-label">面部宽高比</div>
+                        <div class="golden-value" id="faceRatio">0.0</div>
+                        <div class="golden-status status-average" id="faceRatioStatus">良好</div>
+                    </div>
+                    <div class="golden-item">
+                        <div class="golden-label">眼鼻比例</div>
+                        <div class="golden-value" id="eyeNoseRatio">0.0</div>
+                        <div class="golden-status status-good" id="eyeNoseStatus">优秀</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button class="btn btn-secondary" id="backToMeasurements">
+                        <i class="fas fa-arrow-left"></i> 重新测量
+                    </button>
+                    <button class="btn btn-primary" id="viewRecommendations">
+                        查看专业建议 <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 专业建议页面 -->
+            <section class="content-section" id="recommendations-page">
+                <h1 class="page-title">个性化专业建议</h1>
+                <p class="page-subtitle">基于您的面部特征与身体数据生成的全面优化方案</p>
+                
+                <div class="recommendation-tabs">
+                    <button class="rec-tab active" data-tab="overview">
+                        <i class="fas fa-eye"></i> 总览
+                    </button>
+                    <button class="rec-tab" data-tab="hairstyle">
+                        <i class="fas fa-cut"></i> 发型
+                    </button>
+                    <button class="rec-tab" data-tab="makeup">
+                        <i class="fas fa-paint-brush"></i> 化妆
+                    </button>
+                    <button class="rec-tab" data-tab="fashion">
+                        <i class="fas fa-tshirt"></i> 穿搭
+                    </button>
+                    <button class="rec-tab" data-tab="accessories">
+                        <i class="fas fa-gem"></i> 配饰
+                    </button>
+                    <button class="rec-tab" data-tab="skincare">
+                        <i class="fas fa-spa"></i> 护肤
+                    </button>
+                </div>
+                
+                <!-- 总览建议 -->
+                <div class="rec-content active" id="overview-content">
+                    <div class="recommendation-content">
+                        <div class="rec-section">
+                            <h5><i class="fas fa-star"></i> 综合形象评估</h5>
+                            <p id="overviewSummary">根据您的面部特征和身体数据分析，您拥有良好的面部对称性和协调的比例。以下是根据您的个人特征生成的全面优化方案。</p>
+                            
+                            <div class="face-contour" style="margin: 20px 0;">
+                                <div class="face-outline" id="summaryFaceOutline"></div>
+                                <div class="face-type" id="summaryFaceShape">椭圆形</div>
+                            </div>
+                        </div>
+                        
+                        <div class="rec-section">
+                            <h5><i class="fas fa-lightbulb"></i> 核心优化重点</h5>
+                            <ul class="rec-list">
+                                <li><i class="fas fa-check"></i> <strong>发型重点</strong>: 通过层次剪裁增加头顶蓬松度，侧分发型优化面部比例</li>
+                                <li><i class="fas fa-check"></i> <strong>妆容要点</strong>: 强调自然裸妆感，重点修饰眼部轮廓与唇部饱满度</li>
+                                <li><i class="fas fa-check"></i> <strong>穿搭方向</strong>: 选择简约现代风格，注重剪裁与面料的质感</li>
+                                <li><i class="fas fa-check"></i> <strong>配饰选择</strong>: 精致简约的金属饰品，避免过于复杂的装饰</li>
+                                <li><i class="fas fa-check"></i> <strong>护肤重点</strong>: 加强补水与抗氧化护理，定期去角质促进吸收</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="rec-section">
+                            <h5><i class="fas fa-palette"></i> 适合您的色彩搭配</h5>
+                            <p>根据您的肤色和面部特征，推荐以下色彩组合：</p>
+                            <div class="color-palette">
+                                <div class="color-item" style="background: #4a6fa5;">
+                                    <div class="color-name">深海蓝</div>
+                                </div>
+                                <div class="color-item" style="background: #6b93d6;">
+                                    <div class="color-name">天青蓝</div>
+                                </div>
+                                <div class="color-item" style="background: #ff6b8b;">
+                                    <div class="color-name">玫瑰粉</div>
+                                </div>
+                                <div class="color-item" style="background: #4CAF50;">
+                                    <div class="color-name">薄荷绿</div>
+                                </div>
+                                <div class="color-item" style="background: #FF9800;">
+                                    <div class="color-name">暖阳橙</div>
+                                </div>
+                            </div>
+                            <p style="font-size: 13px; color: var(--text-secondary); margin-top: 12px;">
+                                <i class="fas fa-info-circle"></i> 这些色彩能够衬托您的肤色，提升整体气色与高级感。
+                            </p>
+                        </div>
+                        
+                        <div class="rec-section">
+                            <h5><i class="fas fa-calendar-alt"></i> 7天形象提升计划</h5>
+                            <ul class="rec-list">
+                                <li><i class="fas fa-check"></i> <strong>第1-2天</strong>: 尝试新的发型分区方式，观察不同角度的效果</li>
+                                <li><i class="fas fa-check"></i> <strong>第3-4天</strong>: 实践推荐的化妆技巧，重点练习眼妆与修容</li>
+                                <li><i class="fas fa-check"></i> <strong>第5天</strong>: 搭配一套完整的推荐穿搭，拍照记录效果</li>
+                                <li><i class="fas fa-check"></i> <strong>第6天</strong>: 尝试不同的配饰组合，找到最适合的风格</li>
+                                <li><i class="fas fa-check"></i> <strong>第7天</strong>: 全面实践所有建议，拍摄前后对比照片</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 发型建议 -->
+                <div class="rec-content" id="hairstyle-content">
+                    <div class="recommendation-content">
+                        <div class="rec-section">
+                            <h5><i class="fas fa-scissors"></i> 最适合您的发型设计</h5>
+                            <p>根据您的<span id="hairstyleFaceShape">椭圆形</span>脸型和面部比例特征，以下发型能够最大化突出您的优势，修饰需要改善的区域。</p>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-thumbs-up"></i> 强烈推荐发型</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-star"></i> <strong>中长发微卷（侧分）</strong>: 长度在锁骨位置，打造自然微卷效果，侧分增加头顶蓬松度，视觉上拉长面部线条，适合大多数场合。</li>
+                                    <li><i class="fas fa-star"></i> <strong>空气刘海锁骨发</strong>: 轻柔的空气刘海修饰额头比例，锁骨长度平衡面部宽度，层次剪裁增加发型的动感与轻盈感。</li>
+                                    <li><i class="fas fa-star"></i> <strong>层次感波波头</strong>: 长度在耳下到下巴之间，通过层次剪裁增加发型立体感，适合想要尝试短发的您，显得干练又时尚。</li>
+                                    <li><i class="fas fa-star"></i> <strong>慵懒感低马尾</strong>: 日常通勤或休闲时的理想选择，注意不要扎得太紧，保留一些碎发和蓬松感，修饰脸型轮廓。</li>
+                                    <li><i class="fas fa-star"></i> <strong>法式刘海长发</strong>: 经典法式刘海搭配自然长直发或微卷发，打造随性优雅的巴黎风格，适合气质型女性。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-thumbs-down"></i> 需要避免的发型</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-times"></i> <strong>厚重齐刘海</strong>: 会缩短面部长度，使脸部看起来更圆，不适合您的脸型比例。</li>
+                                    <li><i class="fas fa-times"></i> <strong>贴头皮直发</strong>: 缺乏层次感和蓬松度，会暴露面部轮廓的所有缺点。</li>
+                                    <li><i class="fas fa-times"></i> <strong>超短发</strong>: 过于短的发型会放大面部宽度，不利于优化比例。</li>
+                                    <li><i class="fas fa-times"></i> <strong>无层次长直发</strong>: 过于平淡缺乏设计感，无法修饰面部轮廓。</li>
+                                    <li><i class="fas fa-times"></i> <strong>高耸发型</strong>: 过高的顶部会增加面部长度感，破坏三庭比例平衡。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-tips"></i> 专业造型技巧</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>吹发技巧</strong>: 吹发时逆向发根方向吹，可增加发根蓬松度，使用圆筒梳辅助造型。</li>
+                                    <li><i class="fas fa-check"></i> <strong>卷发技巧</strong>: 使用32mm卷发棒，从头发中部开始卷，避免从发根开始，打造自然波浪。</li>
+                                    <li><i class="fas fa-check"></i> <strong>分区方法</strong>: 将头发分为上下两层分别处理，确保内层头发也有足够的卷度和蓬松感。</li>
+                                    <li><i class="fas fa-check"></i> <strong>定型产品</strong>: 使用质地轻盈的发蜡或发油，取少量在掌心搓匀后涂抹在发梢，避免发根处。</li>
+                                    <li><i class="fas fa-check"></i> <strong>日常维护</strong>: 每周使用1-2次深层护发素，避免过度使用高温造型工具，定期修剪分叉。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 化妆建议 -->
+                <div class="rec-content" id="makeup-content">
+                    <div class="recommendation-content">
+                        <div class="rec-section">
+                            <h5><i class="fas fa-palette"></i> 全方位化妆优化方案</h5>
+                            <p>根据您的面部特征分析，以下化妆技巧能够最大化突出您的五官优势，改善需要修饰的区域。</p>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-layer-group"></i> 底妆与轮廓修饰</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>粉底选择</strong>: 使用哑光或半哑光粉底液，色号选择与颈部肤色一致的自然色系，避免过白或过黄。</li>
+                                    <li><i class="fas fa-check"></i> <strong>遮瑕技巧</strong>: 使用比肤色亮1-2个色号的遮瑕膏，点涂在黑眼圈、痘印和暗沉区域，用海绵轻轻拍开。</li>
+                                    <li><i class="fas fa-check"></i> <strong>修容方法</strong>: 使用灰调修容粉，从颧骨下方斜向下轻扫至下颌线，打造自然阴影效果。</li>
+                                    <li><i class="fas fa-check"></i> <strong>高光位置</strong>: 在T区、眉骨、颧骨上方和下巴中央使用细腻珠光高光，提升面部立体感。</li>
+                                    <li><i class="fas fa-check"></i> <strong>定妆要点</strong>: 使用透明散粉在易出油区域（T区、下巴）轻拍定妆，保持妆容持久。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-eye"></i> 眼妆重点打造</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>眼影配色</strong>: 日常选择大地色系（浅棕、米色、深棕），特殊场合可尝试玫瑰金或酒红色系。</li>
+                                    <li><i class="fas fa-check"></i> <strong>眼影画法</strong>: 浅色打底整个眼窝，中间色加深双眼皮褶皱，深色加强眼尾三角区，珠光色提亮眼中。</li>
+                                    <li><i class="fas fa-check"></i> <strong>眼线技巧</strong>: 使用棕色眼线笔更自然，从眼中开始向眼尾自然延长，眼头轻微勾勒。</li>
+                                    <li><i class="fas fa-check"></i> <strong>睫毛处理</strong>: 先夹翘睫毛，使用纤长型睫毛膏从根部Z字形向上刷，下睫毛垂直刷。</li>
+                                    <li><i class="fas fa-check"></i> <strong>眉毛塑造</strong>: 根据原生眉形，使用眉笔或眉粉填补空缺，眉尾自然延伸，眉头轻扫打造毛流感。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-kiss-wink-heart"></i> 唇妆与腮红搭配</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>唇部打底</strong>: 使用润唇膏滋润唇部，纸巾轻按吸收多余油分，再涂口红更持久。</li>
+                                    <li><i class="fas fa-check"></i> <strong>唇形勾勒</strong>: 使用唇线笔或唇刷勾勒唇形，可稍微超过自然唇线打造饱满M唇效果。</li>
+                                    <li><i class="fas fa-check"></i> <strong>唇膏选择</strong>: 日常推荐玫瑰豆沙色、奶茶色、珊瑚橘；重要场合可选正红色或梅子色。</li>
+                                    <li><i class="fas fa-check"></i> <strong>腮红位置</strong>: 微笑找到苹果肌，腮红斜向上轻扫至颧骨，打造自然红润感。</li>
+                                    <li><i class="fas fa-check"></i> <strong>腮红色系</strong>: 肤色偏白选粉色系，肤色偏黄选橘色系，肤色偏深选梅子色系。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-clock"></i> 5分钟快速妆容方案</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>步骤1（1分钟）</strong>: 润色隔离霜均匀肤色，遮瑕膏遮盖明显瑕疵。</li>
+                                    <li><i class="fas fa-check"></i> <strong>步骤2（1.5分钟）</strong>: 单色眼影扫在整个眼窝，棕色眼线笔勾勒上眼线。</li>
+                                    <li><i class="fas fa-check"></i> <strong>步骤3（1分钟）</strong>: 快速夹翘睫毛，刷上睫毛膏。</li>
+                                    <li><i class="fas fa-check"></i> <strong>步骤4（1分钟）</strong>: 腮红膏点涂在苹果肌拍开，润色唇膏涂抹双唇。</li>
+                                    <li><i class="fas fa-check"></i> <strong>步骤5（0.5分钟）</strong>: 定妆喷雾全脸喷洒，锁住妆容。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 穿搭建议 -->
+                <div class="rec-content" id="fashion-content">
+                    <div class="recommendation-content">
+                        <div class="rec-section">
+                            <h5><i class="fas fa-tshirt"></i> 全方位穿搭指南</h5>
+                            <p>结合您的面部特征、身材比例和个人风格，以下是为您量身定制的穿搭方案。</p>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-user-tie"></i> 适合您的服装款式</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>上衣领型</strong>: V领、方领、船形领、一字领，这些领型能够拉长颈部线条，优化面部比例。</li>
+                                    <li><i class="fas fa-check"></i> <strong>连衣裙款式</strong>: A字裙、裹身裙、修身直筒裙，长度在膝盖上方或脚踝处最显比例。</li>
+                                    <li><i class="fas fa-check"></i> <strong>裤装选择</strong>: 高腰直筒裤、微喇叭裤、烟管裤，避免低腰和过于紧身的款式。</li>
+                                    <li><i class="fas fa-check"></i> <strong>外套类型</strong>: 修身西装外套、风衣、简约皮衣，长度在臀部或大腿中部最合适。</li>
+                                    <li><i class="fas fa-check"></i> <strong>面料质地</strong>: 垂坠感面料（丝绸、雪纺）、挺括面料（棉质、牛仔）、细腻针织面料。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-ruler-combined"></i> 基于身高体重的穿搭技巧</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>身高优化</strong>: 选择高腰设计、竖条纹、同色系穿搭，视觉上拉长身形比例。</li>
+                                    <li><i class="fas fa-check"></i> <strong>比例平衡</strong>: 使用腰带明确腰线位置，上下身采用不同颜色创造视觉分割。</li>
+                                    <li><i class="fas fa-check"></i> <strong>显瘦技巧</strong>: 深色系服装、V领设计、垂坠面料、适当露肤（手腕、脚踝）。</li>
+                                    <li><i class="fas fa-check"></i> <strong>增高效果</strong>: 尖头鞋、裸色高跟鞋、厚底鞋，搭配与裤子同色的鞋款。</li>
+                                    <li><i class="fas fa-check"></i> <strong>避免款式</strong>: 过于宽松的 oversized 款式、横条纹、复杂印花、多层叠穿。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-calendar-week"></i> 一周穿搭方案示例</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>周一（通勤）</strong>: 白色衬衫 + 黑色高腰直筒裤 + 黑色高跟鞋 + 简约西装外套</li>
+                                    <li><i class="fas fa-check"></i> <strong>周二（会议）</strong>: 藏青色连衣裙 + 米色风衣 + 裸色尖头鞋 + 精致手表</li>
+                                    <li><i class="fas fa-check"></i> <strong>周三（日常）</strong>: 灰色针织衫 + 蓝色牛仔裤 + 白色运动鞋 + 帆布托特包</li>
+                                    <li><i class="fas fa-check"></i> <strong>周四（约会）</strong>: 碎花连衣裙 + 牛仔外套 + 棕色短靴 + 小巧斜挎包</li>
+                                    <li><i class="fas fa-check"></i> <strong>周五（聚会）</strong>: 黑色吊带裙 + 金属色高跟鞋 + 精致手拿包 + 闪亮饰品</li>
+                                    <li><i class="fas fa-check"></i> <strong>周末（休闲）</strong>: 卫衣 + 运动裤 + 老爹鞋 + 双肩包，舒适又不失时尚感</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-shopping-bag"></i> 必备单品清单</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>基础款</strong>: 白衬衫、黑色高腰裤、蓝色牛仔裤、黑色连衣裙、灰色针织衫</li>
+                                    <li><i class="fas fa-check"></i> <strong>外套类</strong>: 牛仔外套、西装外套、风衣、皮衣、针织开衫</li>
+                                    <li><i class="fas fa-check"></i> <strong>鞋履类</strong>: 黑色高跟鞋、白色运动鞋、棕色短靴、凉鞋、帆布鞋</li>
+                                    <li><i class="fas fa-check"></i> <strong>包袋类</strong>: 托特包、斜挎包、手拿包、双肩包、腰包</li>
+                                    <li><i class="fas fa-check"></i> <strong>配饰类</strong>: 简约手表、精致项链、耳环、丝巾、腰带</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 配饰建议 -->
+                <div class="rec-content" id="accessories-content">
+                    <div class="recommendation-content">
+                        <div class="rec-section">
+                            <h5><i class="fas fa-gem"></i> 精致配饰搭配指南</h5>
+                            <p>合适的配饰能够为整体造型画龙点睛，根据您的面部特征和风格偏好，以下是为您推荐的配饰选择。</p>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-glasses"></i> 眼镜框架选择</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>形状推荐</strong>: 圆形、椭圆形、猫眼形镜框，能够柔和面部线条，增加时尚感。</li>
+                                    <li><i class="fas fa-check"></i> <strong>材质选择</strong>: 金属细边框、玳瑁花纹、透明板材，避免过于粗重的框架。</li>
+                                    <li><i class="fas fa-check"></i> <strong>颜色建议</strong>: 金色、银色、玫瑰金、玳瑁色、透明色，根据肤色选择冷暖色调。</li>
+                                    <li><i class="fas fa-check"></i> <strong>尺寸要点</strong>: 镜框宽度应与面部宽度协调，镜腿长度应适中，避免压迫太阳穴。</li>
+                                    <li><i class="fas fa-check"></i> <strong>搭配技巧</strong>: 日常佩戴选择简约款式，特殊场合可尝试设计感强的镜框。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-ring"></i> 珠宝首饰搭配</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>项链选择</strong>: 锁骨链、Y字链、choker、长项链，根据领口形状选择合适长度。</li>
+                                    <li><i class="fas fa-check"></i> <strong>耳环类型</strong>: 小巧耳钉、hoop耳环、流苏耳环、几何耳环，根据脸型选择合适大小。</li>
+                                    <li><i class="fas fa-check"></i> <strong>手部饰品</strong>: 简约手表、细手链、戒指叠戴，避免过于繁琐的设计。</li>
+                                    <li><i class="fas fa-check"></i> <strong>材质搭配</strong>: 黄金、白金、玫瑰金、银饰，根据服装色调选择相应金属色。</li>
+                                    <li><i class="fas fa-check"></i> <strong>佩戴原则</strong>: 全身饰品不超过三处，保持风格统一，避免过多不同材质混搭。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-briefcase"></i> 包包选择与搭配</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>日常通勤包</strong>: 托特包、水桶包、剑桥包，容量适中，设计简约实用。</li>
+                                    <li><i class="fas fa-check"></i> <strong>约会晚宴包</strong>: 手拿包、链条包、迷你包，选择闪亮或特殊材质提升精致感。</li>
+                                    <li><i class="fas fa-check"></i> <strong>休闲旅行包</strong>: 双肩包、帆布袋、编织包，注重实用性与舒适度。</li>
+                                    <li><i class="fas fa-check"></i> <strong>尺寸选择</strong>: 根据身高选择合适尺寸，小个子避免过大包款，高个子可尝试大包。</li>
+                                    <li><i class="fas fa-check"></i> <strong>颜色搭配</strong>: 基础色（黑、白、棕）百搭，亮色系（红、蓝、黄）作为点缀。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-scarf"></i> 其他配饰选择</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>帽子类型</strong>: 贝雷帽、渔夫帽、宽檐帽、棒球帽，根据脸型和场合选择。</li>
+                                    <li><i class="fas fa-check"></i> <strong>围巾丝巾</strong>: 真丝小方巾、羊绒围巾、印花长巾，多种系法变换风格。</li>
+                                    <li><i class="fas fa-check"></i> <strong>腰带选择</strong>: 细皮带、宽腰带、编织腰带，用于明确腰线位置。</li>
+                                    <li><i class="fas fa-check"></i> <strong>袜子搭配</strong>: 隐形船袜、中筒袜、花纹袜，根据鞋款和服装风格选择。</li>
+                                    <li><i class="fas fa-check"></i> <strong>发饰选择</strong>: 简约发夹、丝绒发圈、珍珠发卡，点缀发型增加细节感。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 护肤建议 -->
+                <div class="rec-content" id="skincare-content">
+                    <div class="recommendation-content">
+                        <div class="rec-section">
+                            <h5><i class="fas fa-spa"></i> 科学护肤方案</h5>
+                            <p>根据您的肤质分析和年龄特点，以下是为您定制的全面护肤方案，帮助您维持健康光泽的肌肤状态。</p>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-sun"></i> 日间护肤流程（AM）</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>洁面（1分钟）</strong>: 使用温和氨基酸洁面乳，温水打圈按摩，重点清洁T区。</li>
+                                    <li><i class="fas fa-check"></i> <strong>爽肤水（30秒）</strong>: 选择保湿型或平衡PH值的爽肤水，轻拍或化妆棉擦拭。</li>
+                                    <li><i class="fas fa-check"></i> <strong>精华（1分钟）</strong>: 抗氧化精华（维生素C、E）或保湿精华，点涂全脸轻柔按摩吸收。</li>
+                                    <li><i class="fas fa-check"></i> <strong>眼霜（30秒）</strong>: 取米粒大小眼霜，无名指轻轻点按眼周，从内眼角向外眼角按摩。</li>
+                                    <li><i class="fas fa-check"></i> <strong>乳液/面霜（1分钟）</strong>: 根据肤质选择，油皮选轻薄乳液，干皮选滋润面霜。</li>
+                                    <li><i class="fas fa-check"></i> <strong>防晒（1分钟）</strong>: 最重要的一步！选择SPF30-50，PA+++以上的防晒霜，全脸涂抹。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-moon"></i> 夜间护肤流程（PM）</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>卸妆（2分钟）</strong>: 即使不化妆也要卸妆！使用卸妆油/膏彻底溶解防晒和污垢。</li>
+                                    <li><i class="fas fa-check"></i> <strong>洁面（1分钟）</strong>: 再次使用洁面乳，确保彻底清洁，为后续护肤打开通道。</li>
+                                    <li><i class="fas fa-check"></i> <strong>爽肤水（30秒）</strong>: 使用具有修复或保湿功能的爽肤水，为皮肤补充水分。</li>
+                                    <li><i class="fas fa-check"></i> <strong>精华（2分钟）</strong>: 修复精华（视黄醇、胜肽）或美白精华，夜间是皮肤修复的黄金时间。</li>
+                                    <li><i class="fas fa-check"></i> <strong>眼霜（30秒）</strong>: 使用滋养型眼霜，配合按摩促进血液循环，减少黑眼圈和细纹。</li>
+                                    <li><i class="fas fa-check"></i> <strong>面霜（1分钟）</strong>: 选择修复型晚霜，帮助皮肤在夜间恢复和再生。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-calendar-alt"></i> 每周特殊护理</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>去角质（1次/周）</strong>: 化学去角质（果酸、水杨酸）或物理去角质（磨砂膏），促进角质更新。</li>
+                                    <li><i class="fas fa-check"></i> <strong>清洁面膜（1次/周）</strong>: 泥膜或炭膜，深层清洁毛孔，控制油脂分泌。</li>
+                                    <li><i class="fas fa-check"></i> <strong>保湿面膜（2-3次/周）</strong>: 片状面膜或涂抹式面膜，密集补水，改善皮肤干燥。</li>
+                                    <li><i class="fas fa-check"></i> <strong>眼膜（1次/周）</strong>: 专门针对眼周问题的眼膜，改善细纹、黑眼圈和浮肿。</li>
+                                    <li><i class="fas fa-check"></i> <strong>唇部护理（每天）</strong>: 睡前涂抹润唇膏或唇膜，保持唇部柔软滋润。</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="rec-section">
+                                <h5><i class="fas fa-apple-alt"></i> 内调与生活习惯</h5>
+                                <ul class="rec-list">
+                                    <li><i class="fas fa-check"></i> <strong>充足饮水</strong>: 每天饮用1.5-2升水，帮助身体排毒，保持皮肤水润。</li>
+                                    <li><i class="fas fa-check"></i> <strong>均衡饮食</strong>: 多摄入富含维生素C、E的食物（水果、蔬菜、坚果），减少高糖高油食物。</li>
+                                    <li><i class="fas fa-check"></i> <strong>充足睡眠</strong>: 保证7-8小时高质量睡眠，夜间11点前入睡最佳，促进皮肤修复。</li>
+                                    <li><i class="fas fa-check"></i> <strong>适度运动</strong>: 每周3-4次有氧运动，促进血液循环，帮助皮肤排毒。</li>
+                                    <li><i class="fas fa-check"></i> <strong>压力管理</strong>: 学习放松技巧（冥想、深呼吸），减少压力对皮肤的负面影响。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button class="btn btn-secondary" id="backToAnalysis">
+                        <i class="fas fa-arrow-left"></i> 返回分析
+                    </button>
+                    <button class="btn btn-primary" id="downloadFullReport">
+                        <i class="fas fa-download"></i> 下载完整报告
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- 底部导航栏 -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" data-page="upload">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>上传</span>
+            </a>
+            <a href="#" class="nav-item" data-page="measurements">
+                <i class="fas fa-ruler-combined"></i>
+                <span>测量</span>
+            </a>
+            <a href="#" class="nav-item" data-page="analysis">
+                <i class="fas fa-chart-line"></i>
+                <span>分析</span>
+            </a>
+            <a href="#" class="nav-item" data-page="recommendations">
+                <i class="fas fa-magic"></i>
+                <span>建议</span>
+            </a>
+        </nav>
+
+        <!-- 加载动画 -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">AI智能分析中...</div>
+        </div>
+
+        <!-- 模态框 -->
+        <div class="modal" id="errorModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>提示</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p id="errorMessage">请先上传照片</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 应用主逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            // 全局变量
+            let uploadedImage = null;
+            let analysisResults = null;
+            let userMeasurements = {
+                height: null,
+                weight: null,
+                gender: 'female',
+                age: null,
+                bmi: null,
+                bmiCategory: null
+            };
+            
+            // 图表实例
+            let radarChart = null;
+            let pieChart = null;
+            
+            // DOM元素
+            const elements = {
+                // 页面
+                pages: {
+                    upload: document.getElementById('upload-page'),
+                    measurements: document.getElementById('measurements-page'),
+                    analysis: document.getElementById('analysis-page'),
+                    recommendations: document.getElementById('recommendations-page')
+                },
+                
+                // 上传页面
+                uploadArea: document.getElementById('uploadArea'),
+                fileInput: document.getElementById('fileInput'),
+                uploadBtn: document.getElementById('uploadBtn'),
+                previewContainer: document.getElementById('previewContainer'),
+                previewImage: document.getElementById('previewImage'),
+                removeBtn: document.getElementById('removeBtn'),
+                nextToMeasurements: document.getElementById('nextToMeasurements'),
+                
+                // 测量页面
+                heightInput: document.getElementById('height'),
+                weightInput: document.getElementById('weight'),
+                genderSelect: document.getElementById('gender'),
+                ageInput: document.getElementById('age'),
+                calculateBmi: document.getElementById('calculateBmi'),
+                bmiResult: document.getElementById('bmiResult'),
+                bmiValue: document.getElementById('bmiValue'),
+                bmiCategory: document.getElementById('bmiCategory'),
+                bmiDescription: document.getElementById('bmiDescription'),
+                bmiPointer: document.getElementById('bmiPointer'),
+                backToUpload: document.getElementById('backToUpload'),
+                startAnalysis: document.getElementById('startAnalysis'),
+                
+                // 分析页面
+                overallScore: document.getElementById('overallScore'),
+                scoreProgress: document.getElementById('scoreProgress'),
+                beautyLevel: document.getElementById('beautyLevel'),
+                faceType: document.getElementById('faceType'),
+                faceOutline: document.getElementById('faceOutline'),
+                faceShape: document.getElementById('faceShape'),
+                
+                // 指标
+                symmetryValue: document.getElementById('symmetryValue'),
+                symmetryProgress: document.getElementById('symmetryProgress'),
+                symmetryDesc: document.getElementById('symmetryDesc'),
+                
+                zonesValue: document.getElementById('zonesValue'),
+                zonesProgress: document.getElementById('zonesProgress'),
+                zonesDesc: document.getElementById('zonesDesc'),
+                
+                featuresValue: document.getElementById('featuresValue'),
+                featuresProgress: document.getElementById('featuresProgress'),
+                featuresDesc: document.getElementById('featuresDesc'),
+                
+                contourValue: document.getElementById('contourValue'),
+                contourProgress: document.getElementById('contourProgress'),
+                contourDesc: document.getElementById('contourDesc'),
+                
+                // 黄金比例
+                nasolabialAngle: document.getElementById('nasolabialAngle'),
+                nasolabialStatus: document.getElementById('nasolabialStatus'),
+                faceRatio: document.getElementById('faceRatio'),
+                faceRatioStatus: document.getElementById('faceRatioStatus'),
+                eyeNoseRatio: document.getElementById('eyeNoseRatio'),
+                eyeNoseStatus: document.getElementById('eyeNoseStatus'),
+                
+                // 建议页面
+                recommendationTabs: document.querySelectorAll('.rec-tab'),
+                recContents: document.querySelectorAll('.rec-content'),
+                hairstyleFaceShape: document.getElementById('hairstyleFaceShape'),
+                summaryFaceOutline: document.getElementById('summaryFaceOutline'),
+                summaryFaceShape: document.getElementById('summaryFaceShape'),
+                
+                // 导航
+                bottomNavItems: document.querySelectorAll('.nav-item'),
+                
+                // 加载和模态框
+                loadingOverlay: document.getElementById('loadingOverlay'),
+                errorModal: document.getElementById('errorModal'),
+                errorMessage: document.getElementById('errorMessage'),
+                closeModal: document.querySelector('.close-modal'),
+                
+                // 其他按钮
+                backToMeasurements: document.getElementById('backToMeasurements'),
+                viewRecommendations: document.getElementById('viewRecommendations'),
+                backToAnalysis: document.getElementById('backToAnalysis'),
+                downloadFullReport: document.getElementById('downloadFullReport')
+            };
+
+            // 初始化应用
+            initApp();
+
+            function initApp() {
+                initEventListeners();
+                initCharts();
+            }
+
+            function initEventListeners() {
+                // 文件上传
+                elements.uploadBtn.addEventListener('click', () => elements.fileInput.click());
+                elements.fileInput.addEventListener('change', handleFileUpload);
+                
+                // 拖放上传
+                elements.uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    elements.uploadArea.classList.add('highlight');
+                });
+                
+                elements.uploadArea.addEventListener('dragleave', () => {
+                    elements.uploadArea.classList.remove('highlight');
+                });
+                
+                elements.uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    elements.uploadArea.classList.remove('highlight');
+                    if (e.dataTransfer.files.length) {
+                        handleFileUpload({ target: { files: e.dataTransfer.files } });
+                    }
+                });
+
+                // 移除照片
+                elements.removeBtn.addEventListener('click', resetUpload);
+
+                // 导航到测量页面
+                elements.nextToMeasurements.addEventListener('click', () => {
+                    if (!uploadedImage) {
+                        showError('请先上传照片');
+                        return;
+                    }
+                    switchPage('measurements');
+                });
+
+                // 计算BMI
+                elements.calculateBmi.addEventListener('click', calculateBMI);
+
+                // 开始分析
+                elements.startAnalysis.addEventListener('click', startAnalysis);
+
+                // 返回按钮
+                elements.backToUpload.addEventListener('click', () => switchPage('upload'));
+                elements.backToMeasurements.addEventListener('click', () => switchPage('measurements'));
+                elements.backToAnalysis.addEventListener('click', () => switchPage('analysis'));
+
+                // 查看建议
+                elements.viewRecommendations.addEventListener('click', () => {
+                    generateRecommendations();
+                    switchPage('recommendations');
+                });
+
+                // 底部导航
+                elements.bottomNavItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const page = item.dataset.page;
+                        
+                        // 检查是否可以切换到该页面
+                        if (page === 'measurements' && !uploadedImage) {
+                            showError('请先上传照片');
+                            return;
+                        }
+                        
+                        if (page === 'analysis' && !userMeasurements.height) {
+                            showError('请先填写身高体重数据');
+                            return;
+                        }
+                        
+                        if (page === 'recommendations' && !analysisResults) {
+                            showError('请先完成分析');
+                            return;
+                        }
+                        
+                        switchPage(page);
+                    });
+                });
+
+                // 建议标签页切换
+                elements.recommendationTabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const tabId = tab.dataset.tab;
+                        switchRecommendationTab(tabId);
+                    });
+                });
+
+                // 下载报告
+                elements.downloadFullReport.addEventListener('click', downloadFullReport);
+
+                // 关闭模态框
+                elements.closeModal.addEventListener('click', () => {
+                    elements.errorModal.style.display = 'none';
+                });
+
+                // 点击模态框外部关闭
+                elements.errorModal.addEventListener('click', (e) => {
+                    if (e.target === elements.errorModal) {
+                        elements.errorModal.style.display = 'none';
+                    }
+                });
+            }
+
+            function initCharts() {
+                // 初始化雷达图
+                const radarCtx = document.getElementById('radarChart').getContext('2d');
+                radarChart = new Chart(radarCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['对称性', '比例协调', '五官精致', '皮肤质感', '轮廓线条', '整体和谐'],
+                        datasets: [{
+                            label: '面部特征评估',
+                            data: [85, 78, 92, 76, 88, 90],
+                            backgroundColor: 'rgba(106, 17, 203, 0.2)',
+                            borderColor: 'rgba(106, 17, 203, 1)',
+                            pointBackgroundColor: 'rgba(106, 17, 203, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(106, 17, 203, 1)',
+                            borderWidth: 2,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                },
+                                pointLabels: {
+                                    font: {
+                                        size: 12,
+                                        family: "'Segoe UI', sans-serif"
+                                    },
+                                    color: '#666'
+                                },
+                                ticks: {
+                                    backdropColor: 'transparent',
+                                    color: '#999',
+                                    font: {
+                                        size: 10
+                                    },
+                                    stepSize: 20,
+                                    beginAtZero: true
+                                },
+                                suggestedMin: 0,
+                                suggestedMax: 100
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+
+                // 初始化饼图
+                const pieCtx = document.getElementById('pieChart').getContext('2d');
+                pieChart = new Chart(pieCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['上庭', '中庭', '下庭'],
+                        datasets: [{
+                            data: [33, 34, 33],
+                            backgroundColor: [
+                                'rgba(255, 107, 139, 0.8)',
+                                'rgba(74, 111, 165, 0.8)',
+                                'rgba(76, 175, 80, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 107, 139, 1)',
+                                'rgba(74, 111, 165, 1)',
+                                'rgba(76, 175, 80, 1)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    font: {
+                                        size: 12
+                                    },
+                                    padding: 20
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': ' + context.parsed + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                // 验证文件类型
+                if (!file.type.match('image.*')) {
+                    showError('请选择图片文件（JPG、PNG格式）');
+                    return;
+                }
+
+                // 验证文件大小
+                if (file.size > 5 * 1024 * 1024) {
+                    showError('图片大小不能超过5MB');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImage = {
+                        src: e.target.result,
+                        file: file,
+                        name: file.name,
+                        size: formatFileSize(file.size)
+                    };
+
+                    // 显示预览
+                    elements.previewImage.src = uploadedImage.src;
+                    elements.previewContainer.style.display = 'block';
+                    
+                    // 更新导航状态
+                    updateNavigation();
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function resetUpload() {
+                uploadedImage = null;
+                elements.previewImage.src = '';
+                elements.previewContainer.style.display = 'none';
+                elements.fileInput.value = '';
+                updateNavigation();
+            }
+
+            function calculateBMI() {
+                const height = parseFloat(elements.heightInput.value);
+                const weight = parseFloat(elements.weightInput.value);
+                
+                if (!height || !weight) {
+                    showError('请输入完整的身高和体重数据');
+                    return;
+                }
+                
+                if (height < 100 || height > 250) {
+                    showError('身高应在100-250厘米之间');
+                    return;
+                }
+                
+                if (weight < 30 || weight > 200) {
+                    showError('体重应在30-200公斤之间');
+                    return;
+                }
+                
+                // 计算BMI
+                const heightInMeters = height / 100;
+                const bmi = weight / (heightInMeters * heightInMeters);
+                
+                // 保存数据
+                userMeasurements.height = height;
+                userMeasurements.weight = weight;
+                userMeasurements.gender = elements.genderSelect.value;
+                userMeasurements.age = parseInt(elements.ageInput.value) || 25;
+                userMeasurements.bmi = bmi;
+                
+                // 判断BMI类别
+                let category = '';
+                let description = '';
+                let pointerPosition = 0;
+                
+                if (bmi < 18.5) {
+                    category = '偏瘦';
+                    description = '体重偏轻，建议适当增加营养摄入，保持均衡饮食。';
+                    pointerPosition = (bmi / 18.5) * 25;
+                } else if (bmi < 24) {
+                    category = '正常';
+                    description = '体重在正常范围内，继续保持健康的生活方式。';
+                    pointerPosition = 25 + ((bmi - 18.5) / (24 - 18.5)) * 25;
+                } else if (bmi < 28) {
+                    category = '超重';
+                    description = '体重偏重，建议适当控制饮食并增加运动量。';
+                    pointerPosition = 50 + ((bmi - 24) / (28 - 24)) * 25;
+                } else {
+                    category = '肥胖';
+                    description = '体重超标，建议咨询专业医生或营养师制定减重计划。';
+                    pointerPosition = 75 + ((bmi - 28) / 10) * 25;
+                    if (pointerPosition > 95) pointerPosition = 95;
+                }
+                
+                userMeasurements.bmiCategory = category;
+                
+                // 显示结果
+                elements.bmiValue.textContent = bmi.toFixed(1);
+                elements.bmiCategory.textContent = category;
+                elements.bmiCategory.className = `bmi-category bmi-${category === '正常' ? 'normal' : category === '偏瘦' ? 'underweight' : 'overweight'}`;
+                elements.bmiDescription.textContent = description;
+                elements.bmiPointer.style.left = `${pointerPosition}%`;
+                elements.bmiResult.style.display = 'block';
+                
+                // 更新导航状态
+                updateNavigation();
+            }
+
+            function startAnalysis() {
+                if (!uploadedImage) {
+                    showError('请先上传照片');
+                    return;
+                }
+                
+                if (!userMeasurements.height || !userMeasurements.weight) {
+                    showError('请先计算BMI指数');
+                    return;
+                }
+                
+                // 显示加载动画
+                elements.loadingOverlay.style.display = 'flex';
+                
+                // 模拟分析过程
+                setTimeout(() => {
+                    generateAnalysisResults();
+                    elements.loadingOverlay.style.display = 'none';
+                    switchPage('analysis');
+                    updateAnalysisDisplay();
+                }, 2000);
+            }
+
+            function generateAnalysisResults() {
+                // 生成模拟分析数据
+                const symmetry = Math.floor(75 + Math.random() * 25);
+                const zones = Math.floor(70 + Math.random() * 30);
+                const features = Math.floor(80 + Math.random() * 20);
+                const contour = Math.floor(65 + Math.random() * 35);
+                
+                // 根据BMI调整分数
+                let bmiAdjustment = 0;
+                if (userMeasurements.bmiCategory === '正常') {
+                    bmiAdjustment = 5;
+                } else if (userMeasurements.bmiCategory === '偏瘦' || userMeasurements.bmiCategory === '超重') {
+                    bmiAdjustment = -3;
+                } else {
+                    bmiAdjustment = -5;
+                }
+                
+                const overall = (symmetry * 0.25 + zones * 0.25 + features * 0.3 + contour * 0.2) + bmiAdjustment;
+                const normalizedScore = Math.max(0, Math.min(100, overall));
+                
+                // 脸型
+                const faceShapes = ['椭圆形', '心形', '圆形', '方形', '菱形'];
+                const faceShape = faceShapes[Math.floor(Math.random() * faceShapes.length)];
+                
+                analysisResults = {
+                    overallScore: normalizedScore,
+                    symmetry: symmetry,
+                    zones: zones,
+                    features: features,
+                    contour: contour,
+                    faceShape: faceShape,
+                    beautyLevel: getBeautyLevel(normalizedScore),
+                    threeZones: [30 + Math.random() * 10, 33 + Math.random() * 6, 37 + Math.random() * 8],
+                    nasolabialAngle: Math.floor(90 + Math.random() * 15),
+                    faceRatio: (0.7 + Math.random() * 0.2).toFixed(2),
+                    eyeNoseRatio: (1.0 + Math.random() * 0.3).toFixed(2)
+                };
+            }
+
+            function updateAnalysisDisplay() {
+                if (!analysisResults) return;
+
+                // 更新总体评分
+                elements.overallScore.textContent = analysisResults.overallScore.toFixed(1);
+                elements.beautyLevel.textContent = analysisResults.beautyLevel;
+                elements.faceType.textContent = `${analysisResults.faceShape}脸型`;
+                
+                // 更新进度圆环
+                updateProgressCircle(elements.scoreProgress, analysisResults.overallScore);
+                
+                // 更新指标
+                updateIndicator('symmetry', analysisResults.symmetry);
+                updateIndicator('zones', analysisResults.zones);
+                updateIndicator('features', analysisResults.features);
+                updateIndicator('contour', analysisResults.contour);
+                
+                // 更新脸型轮廓
+                updateFaceOutline(elements.faceOutline, analysisResults.faceShape);
+                elements.faceShape.textContent = analysisResults.faceShape;
+                
+                // 更新黄金比例
+                elements.nasolabialAngle.textContent = `${analysisResults.nasolabialAngle}°`;
+                elements.faceRatio.textContent = analysisResults.faceRatio;
+                elements.eyeNoseRatio.textContent = analysisResults.eyeNoseRatio;
+                
+                // 更新图表
+                if (radarChart) {
+                    radarChart.data.datasets[0].data = [
+                        analysisResults.symmetry,
+                        analysisResults.zones,
+                        analysisResults.features,
+                        Math.floor(analysisResults.symmetry * 0.7 + analysisResults.zones * 0.3),
+                        analysisResults.contour,
+                        analysisResults.overallScore
+                    ];
+                    radarChart.update();
+                }
+                
+                if (pieChart) {
+                    pieChart.data.datasets[0].data = analysisResults.threeZones;
+                    pieChart.update();
+                }
+                
+                // 更新导航状态
+                updateNavigation();
+            }
+
+            function generateRecommendations() {
+                if (!analysisResults || !userMeasurements) return;
+
+                // 更新建议页面中的脸型
+                elements.hairstyleFaceShape.textContent = analysisResults.faceShape;
+                elements.summaryFaceShape.textContent = analysisResults.faceShape;
+                updateFaceOutline(elements.summaryFaceOutline, analysisResults.faceShape);
+                
+                // 根据BMI生成身材类型
+                let bodyType = '标准';
+                let bodyDescription = '';
+                
+                if (userMeasurements.bmiCategory === '偏瘦') {
+                    bodyType = '纤细型';
+                    bodyDescription = '身材纤细，适合修身剪裁和层次穿搭。';
+                } else if (userMeasurements.bmiCategory === '正常') {
+                    bodyType = '标准型';
+                    bodyDescription = '身材比例均衡，适合多种服装款式。';
+                } else if (userMeasurements.bmiCategory === '超重') {
+                    bodyType = '丰满型';
+                    bodyDescription = '身材较为丰满，建议选择简洁剪裁和垂坠面料。';
+                } else {
+                    bodyType = '圆润型';
+                    bodyDescription = '身材圆润，建议选择深色系和纵向线条设计。';
+                }
+                
+                // 更新总览摘要
+                const overviewSummary = document.getElementById('overviewSummary');
+                if (overviewSummary) {
+                    overviewSummary.textContent = `根据您的面部特征和身体数据分析，您拥有${analysisResults.faceShape}脸型，${analysisResults.beautyLevel}。您的身材属于${bodyType}（BMI: ${userMeasurements.bmi.toFixed(1)}），${bodyDescription}以下是根据您的个人特征生成的全面优化方案。`;
+                }
+            }
+
+            function switchPage(pageId) {
+                // 隐藏所有页面
+                Object.values(elements.pages).forEach(page => {
+                    page.classList.remove('active');
+                });
+
+                // 显示目标页面
+                if (elements.pages[pageId]) {
+                    elements.pages[pageId].classList.add('active');
+                }
+
+                // 更新底部导航
+                elements.bottomNavItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.page === pageId) {
+                        item.classList.add('active');
+                    }
+                });
+                
+                // 如果是建议页面，确保显示第一个标签页
+                if (pageId === 'recommendations') {
+                    switchRecommendationTab('overview');
+                }
+            }
+
+            function switchRecommendationTab(tabId) {
+                // 更新标签按钮
+                elements.recommendationTabs.forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.tab === tabId) {
+                        tab.classList.add('active');
+                    }
+                });
+
+                // 显示对应内容
+                elements.recContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${tabId}-content`) {
+                        content.classList.add('active');
+                    }
+                });
+            }
+
+            function updateIndicator(indicator, value) {
+                const valueElement = elements[`${indicator}Value`];
+                const progressElement = elements[`${indicator}Progress`];
+                const descElement = elements[`${indicator}Desc`];
+                
+                if (valueElement) valueElement.textContent = `${value}%`;
+                if (progressElement) {
+                    progressElement.style.width = `${value}%`;
+                    // 添加动画延迟
+                    setTimeout(() => {
+                        progressElement.style.width = `${value}%`;
+                    }, 300);
+                }
+                
+                // 更新描述
+                let description = '';
+                if (value >= 90) description = '优秀，接近完美比例';
+                else if (value >= 80) description = '良好，表现优秀';
+                else if (value >= 70) description = '中等，有提升空间';
+                else if (value >= 60) description = '一般，建议优化';
+                else description = '待改善，重点关注';
+                
+                if (descElement) descElement.textContent = description;
+            }
+
+            function updateProgressCircle(element, value) {
+                const circumference = 2 * Math.PI * 60; // r=60
+                const offset = circumference - (value / 100) * circumference;
+                element.style.strokeDasharray = `${circumference} ${circumference}`;
+                element.style.strokeDashoffset = offset;
+            }
+
+            function updateFaceOutline(element, faceShape) {
+                // 根据脸型设置不同的轮廓
+                element.innerHTML = '';
+                element.style.borderRadius = '50%';
+                
+                if (faceShape === '椭圆形') {
+                    element.style.borderRadius = '50%';
+                } else if (faceShape === '心形') {
+                    element.style.borderRadius = '50% 50% 30% 30%';
+                } else if (faceShape === '圆形') {
+                    element.style.borderRadius = '50%';
+                    element.style.width = '160px';
+                    element.style.height = '160px';
+                } else if (faceShape === '方形') {
+                    element.style.borderRadius = '15%';
+                } else if (faceShape === '菱形') {
+                    element.style.borderRadius = '50% 50% 0 0';
+                }
+            }
+
+            function getBeautyLevel(score) {
+                if (score >= 90) return '完美美学脸型';
+                if (score >= 80) return '高级美学脸型';
+                if (score >= 70) return '优秀美学脸型';
+                if (score >= 60) return '良好美学脸型';
+                return '标准美学脸型';
+            }
+
+            function updateNavigation() {
+                // 根据当前状态更新导航可用性
+                const hasImage = !!uploadedImage;
+                const hasMeasurements = !!userMeasurements.height;
+                const hasAnalysis = !!analysisResults;
+                
+                elements.bottomNavItems.forEach(item => {
+                    const page = item.dataset.page;
+                    
+                    // 启用或禁用导航项
+                    if (page === 'upload') {
+                        // 上传页面始终可用
+                    } else if (page === 'measurements') {
+                        if (!hasImage) {
+                            item.style.opacity = '0.5';
+                            item.style.pointerEvents = 'none';
+                        } else {
+                            item.style.opacity = '1';
+                            item.style.pointerEvents = 'auto';
+                        }
+                    } else if (page === 'analysis') {
+                        if (!hasMeasurements) {
+                            item.style.opacity = '0.5';
+                            item.style.pointerEvents = 'none';
+                        } else {
+                            item.style.opacity = '1';
+                            item.style.pointerEvents = 'auto';
+                        }
+                    } else if (page === 'recommendations') {
+                        if (!hasAnalysis) {
+                            item.style.opacity = '0.5';
+                            item.style.pointerEvents = 'none';
+                        } else {
+                            item.style.opacity = '1';
+                            item.style.pointerEvents = 'auto';
+                        }
+                    }
+                });
+            }
+
+            function showError(message) {
+                elements.errorMessage.textContent = message;
+                elements.errorModal.style.display = 'flex';
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            function downloadFullReport() {
+                if (!analysisResults || !userMeasurements) {
+                    showError('请先完成分析');
+                    return;
+                }
+                
+                // 创建报告内容
+                const report = `
+                    FaceAnalysis Pro 全面形象分析报告
+                    ====================================
+                    
+                    生成时间: ${new Date().toLocaleString()}
+                    
+                    一、基本信息
+                    ----------------------------
+                    性别: ${userMeasurements.gender === 'male' ? '男性' : userMeasurements.gender === 'female' ? '女性' : '其他'}
+                    年龄: ${userMeasurements.age || '未填写'}岁
+                    身高: ${userMeasurements.height} cm
+                    体重: ${userMeasurements.weight} kg
+                    BMI指数: ${userMeasurements.bmi.toFixed(1)} (${userMeasurements.bmiCategory})
+                    
+                    二、面部美学分析
+                    ----------------------------
+                    综合评分: ${analysisResults.overallScore.toFixed(1)}/100
+                    美学等级: ${analysisResults.beautyLevel}
+                    脸型识别: ${analysisResults.faceShape}
+                    
+                    详细指标:
+                    - 面部对称性: ${analysisResults.symmetry}%
+                    - 三庭五眼比例: ${analysisResults.zones}%
+                    - 五官精致度: ${analysisResults.features}%
+                    - 轮廓线条: ${analysisResults.contour}%
+                    
+                    黄金比例分析:
+                    - 鼻唇角度: ${analysisResults.nasolabialAngle}°
+                    - 面部宽高比: ${analysisResults.faceRatio}
+                    - 眼鼻比例: ${analysisResults.eyeNoseRatio}
+                    
+                    三、专业形象建议
+                    ----------------------------
+                    1. 发型设计:
+                       - 最适合: 中长发微卷（侧分）、空气刘海锁骨发、层次感波波头
+                       - 避免: 厚重齐刘海、贴头皮直发、超短发
+                    
+                    2. 化妆技巧:
+                       - 底妆: 哑光粉底均匀肤色，高光提亮T区
+                       - 眼妆: 大地色系眼影，加强眼尾三角区
+                       - 唇妆: 玫瑰豆沙色唇膏，打造饱满M唇
+                    
+                    3. 穿搭指南:
+                       - 适合领型: V领、方领、船形领
+                       - 推荐款式: A字裙、高腰直筒裤、修身西装外套
+                       - 色彩搭配: 深海蓝、玫瑰粉、薄荷绿、暖阳橙
+                    
+                    4. 配饰选择:
+                       - 眼镜: 圆形或椭圆形金属细边框
+                       - 首饰: 简约锁骨链、小巧耳钉、精致手表
+                       - 包包: 托特包（通勤）、链条包（约会）、双肩包（休闲）
+                    
+                    5. 护肤方案:
+                       - 日间: 洁面→爽肤水→精华→眼霜→乳液→防晒
+                       - 夜间: 卸妆→洁面→爽肤水→修复精华→眼霜→面霜
+                       - 周护理: 去角质1次/周，面膜2-3次/周
+                    
+                    6. 生活习惯:
+                       - 每日饮水1.5-2升
+                       - 保证7-8小时充足睡眠
+                       - 每周3-4次有氧运动
+                       - 均衡饮食，减少高糖高油食物
+                    
+                    四、7天形象提升计划
+                    ----------------------------
+                    第1-2天: 尝试新的发型分区方式
+                    第3-4天: 实践推荐的化妆技巧
+                    第5天: 搭配一套完整的推荐穿搭
+                    第6天: 尝试不同的配饰组合
+                    第7天: 全面实践所有建议，拍摄对比照片
+                    
+                    五、免责声明
+                    ----------------------------
+                    本分析结果基于科学的面部比例理论和美学标准，仅供参考。
+                    美的标准是多元化的，请保持自信，每个人都是独特而美丽的个体。
+                    
+                    祝您生活愉快，越来越美！
+                    
+                    FaceAnalysis Pro 团队敬上
+                `;
+
+                // 创建下载链接
+                const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `FaceAnalysis_报告_${new Date().getTime()}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                // 显示下载成功提示
+                showError('报告下载成功！文件名为: FaceAnalysis_报告_时间戳.txt');
+            }
+        });
+    </script>
+</body>
+</html>
